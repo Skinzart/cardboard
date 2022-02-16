@@ -52,8 +52,8 @@ file(GLOB device_params_srcs "device_params/android/*.cc")
 file(GLOB rendering_opengl_srcs "rendering/opengl_*.cc")
 # #vulkan This is required for Vulkan rendering. Remove the following two lines
 # if Vulkan rendering is not needed.
-file(GLOB rendering_vulkan_srcs "rendering/android/*.cc")
-file(GLOB rendering_vulkan_wrapper_srcs "rendering/android/vulkan/*.cc")
+#file(GLOB rendering_vulkan_srcs "rendering/android/*.cc")
+#file(GLOB rendering_vulkan_wrapper_srcs "rendering/android/vulkan/*.cc")
 
 # === Cardboard Unity JNI ===
 file(GLOB cardboard_unity_jni_srcs "unity/android/*.cc")
@@ -79,8 +79,8 @@ add_library(cardboard_api SHARED
     ${rendering_opengl_srcs}
     # #vulkan This is required for Vulkan rendering. Remove the following two
     # lines if Vulkan rendering is not needed.
-    ${rendering_vulkan_srcs}
-    ${rendering_vulkan_wrapper_srcs}
+    #${rendering_vulkan_srcs}
+    #${rendering_vulkan_wrapper_srcs}
     # Cardboard Unity JNI sources
     ${cardboard_unity_jni_srcs}
     # Cardboard Unity Wrapper sources
@@ -94,7 +94,7 @@ target_include_directories(cardboard_api
 
 # #vulkan This is required for Vulkan rendering. Remove the following line if
 # Vulkan rendering is not needed.
-add_definitions(-DVK_USE_PLATFORM_ANDROID_KHR=1)
+#add_definitions(-DVK_USE_PLATFORM_ANDROID_KHR=1)
 
 # Build
 target_link_libraries(cardboard_api
@@ -107,5 +107,5 @@ target_link_libraries(cardboard_api
     # #vulkan - This is required for Vulkan rendering (it is required to load
     # libvulkan.so at runtime). Remove the following line if Vulkan rendering
     # is not needed
-    dl
+    #dl
 )
