@@ -21,8 +21,8 @@
 
 #include "distortion_renderer.h"
 #include "include/cardboard.h"
-#include "rendering/android/shaders/distortion_frag.spv.h"
-#include "rendering/android/shaders/distortion_vert.spv.h"
+#include "rendering/android/shaders/distortion_frag.spv"
+#include "rendering/android/shaders/distortion_vert.spv"
 #include "rendering/android/vulkan/android_vulkan_loader.h"
 #include "util/is_arg_null.h"
 #include "util/is_initialized.h"
@@ -192,22 +192,20 @@ class VulkanDistortionRenderer : public DistortionRenderer {
     CALL_VK(vkWaitForFences(logical_device_, 1 /* fenceCount */, &fence,
                             VK_TRUE, 100000000));
 
-    // TODO(b/209801806): Fix error message once the integration with Unity is
-    // finished.
     CALL_VK(vkQueuePresentKHR(queue, &present_info));
   }
 
  private:
   VkShaderModule LoadShader(const uint32_t* const content, size_t size) const {
     VkShaderModule shader;
-    VkShaderModuleCreateInfo shader_module_create_info{
+    VkShaderModuleCreateInfo shaderModuleCreateInfo{
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
         .codeSize = size,
         .pCode = content,
     };
-    CALL_VK(vkCreateShaderModule(logical_device_, &shader_module_create_info,
+    CALL_VK(vkCreateShaderModule(logical_device_, &shaderModuleCreateInfo,
                                  nullptr, &shader));
 
     return shader;
@@ -215,12 +213,12 @@ class VulkanDistortionRenderer : public DistortionRenderer {
 
   uint32_t FindMemoryType(uint32_t typeFilter,
                           VkMemoryPropertyFlags properties) {
-    VkPhysicalDeviceMemoryProperties mem_properties;
-    vkGetPhysicalDeviceMemoryProperties(physical_device_, &mem_properties);
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(physical_device_, &memProperties);
 
-    for (uint32_t i = 0; i < mem_properties.memoryTypeCount; i++) {
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
       if ((typeFilter & (1 << i)) &&
-          (mem_properties.memoryTypes[i].propertyFlags & properties) ==
+          (memProperties.memoryTypes[i].propertyFlags & properties) ==
               properties) {
         return i;
       }
@@ -233,36 +231,36 @@ class VulkanDistortionRenderer : public DistortionRenderer {
   void CreateDescriptorSetLayout() {
     VkDescriptorSetLayoutBinding bindings[2];
 
-    VkDescriptorSetLayoutBinding sampler_layout_binding{
+    VkDescriptorSetLayoutBinding samplerLayoutBinding{
         .binding = 0,
         .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
         .descriptorCount = 1,
         .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
         .pImmutableSamplers = nullptr,
     };
-    bindings[0] = sampler_layout_binding;
+    bindings[0] = samplerLayoutBinding;
 
-    VkDescriptorSetLayoutBinding ubo_layout_binding{
+    VkDescriptorSetLayoutBinding uboLayoutBinding{
         .binding = 1,
         .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
         .descriptorCount = 1,
         .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
         .pImmutableSamplers = nullptr,
     };
-    bindings[1] = ubo_layout_binding;
+    bindings[1] = uboLayoutBinding;
 
-    VkDescriptorSetLayoutCreateInfo layout_info{};
-    layout_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layout_info.bindingCount = 2;
-    layout_info.pBindings = bindings;
+    VkDescriptorSetLayoutCreateInfo layoutInfo{};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = 2;
+    layoutInfo.pBindings = bindings;
 
-    CALL_VK(vkCreateDescriptorSetLayout(logical_device_, &layout_info, nullptr,
+    CALL_VK(vkCreateDescriptorSetLayout(logical_device_, &layoutInfo, nullptr,
                                         &descriptor_set_layout_));
   }
 
   void CreatePipelineLayout() {
     // Create the pipeline layout
-    VkPipelineLayoutCreateInfo pipeline_layout_create_info{
+    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
         .pNext = nullptr,
         .setLayoutCount = 1,
@@ -270,7 +268,7 @@ class VulkanDistortionRenderer : public DistortionRenderer {
         .pushConstantRangeCount = 0,
         .pPushConstantRanges = nullptr,
     };
-    CALL_VK(vkCreatePipelineLayout(logical_device_, &pipeline_layout_create_info,
+    CALL_VK(vkCreatePipelineLayout(logical_device_, &pipelineLayoutCreateInfo,
                                    nullptr, &pipeline_layout_));
   }
 
@@ -301,53 +299,53 @@ class VulkanDistortionRenderer : public DistortionRenderer {
   }
 
   void CreateDescriptorPool(CardboardEye eye) {
-    VkDescriptorPoolSize pool_sizes[2];
-    pool_sizes[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    pool_sizes[0].descriptorCount =
+    VkDescriptorPoolSize poolSizes[2];
+    poolSizes[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSizes[0].descriptorCount =
         static_cast<uint32_t>(swapchain_image_count_);
-    pool_sizes[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    pool_sizes[1].descriptorCount =
+    poolSizes[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSizes[1].descriptorCount =
         static_cast<uint32_t>(swapchain_image_count_);
 
-    VkDescriptorPoolCreateInfo pool_info{};
-    pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    pool_info.poolSizeCount = 2;
-    pool_info.pPoolSizes = pool_sizes;
-    pool_info.maxSets = static_cast<uint32_t>(swapchain_image_count_);
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount = 2;
+    poolInfo.pPoolSizes = poolSizes;
+    poolInfo.maxSets = static_cast<uint32_t>(swapchain_image_count_);
 
-    CALL_VK(vkCreateDescriptorPool(logical_device_, &pool_info, nullptr,
+    CALL_VK(vkCreateDescriptorPool(logical_device_, &poolInfo, nullptr,
                                    &descriptor_pool_[eye]));
   }
 
   void CreateDescriptorSets(CardboardEye eye) {
     std::vector<VkDescriptorSetLayout> layouts(swapchain_image_count_,
                                                descriptor_set_layout_);
-    VkDescriptorSetAllocateInfo alloc_info{};
-    alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    alloc_info.descriptorPool = descriptor_pool_[eye];
-    alloc_info.descriptorSetCount =
+    VkDescriptorSetAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = descriptor_pool_[eye];
+    allocInfo.descriptorSetCount =
         static_cast<uint32_t>(swapchain_image_count_);
-    alloc_info.pSetLayouts = layouts.data();
+    allocInfo.pSetLayouts = layouts.data();
 
     descriptor_sets_[eye].resize(swapchain_image_count_);
-    CALL_VK(vkAllocateDescriptorSets(logical_device_, &alloc_info,
+    CALL_VK(vkAllocateDescriptorSets(logical_device_, &allocInfo,
                                      descriptor_sets_[eye].data()));
   }
 
   void CreateGraphicsPipeline(CardboardEye eye) {
-    VkShaderModule vertex_shader =
+    VkShaderModule vertexShader =
         LoadShader(distortion_vert, sizeof(distortion_vert));
-    VkShaderModule fragment_shader =
+    VkShaderModule fragmentShader =
         LoadShader(distortion_frag, sizeof(distortion_frag));
 
     // Specify vertex and fragment shader stages
-    VkPipelineShaderStageCreateInfo shader_stages[2]{
+    VkPipelineShaderStageCreateInfo shaderStages[2]{
         {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
             .stage = VK_SHADER_STAGE_VERTEX_BIT,
-            .module = vertex_shader,
+            .module = vertexShader,
             .pName = "main",
             .pSpecializationInfo = nullptr,
         },
@@ -356,14 +354,14 @@ class VulkanDistortionRenderer : public DistortionRenderer {
             .pNext = nullptr,
             .flags = 0,
             .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-            .module = fragment_shader,
+            .module = fragmentShader,
             .pName = "main",
             .pSpecializationInfo = nullptr,
         }};
 
-    viewport_[eye].x = 0;
+    viewport_[eye].x = (float)(eye == kLeft ? 0 : image_width_ / 2);
     viewport_[eye].y = 0;
-    viewport_[eye].width = (float)image_width_;
+    viewport_[eye].width = (float)image_width_ / 2;
     viewport_[eye].height = (float)image_height_;
     viewport_[eye].minDepth = 0.0f;
     viewport_[eye].maxDepth = 1.0f;
@@ -373,7 +371,7 @@ class VulkanDistortionRenderer : public DistortionRenderer {
     scissor_[eye].extent = {.width = image_width_ / 2, .height = image_height_};
 
     // Specify viewport info
-    VkPipelineViewportStateCreateInfo viewport_info{
+    VkPipelineViewportStateCreateInfo viewportInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
         .pNext = nullptr,
         .viewportCount = 1,
@@ -383,37 +381,37 @@ class VulkanDistortionRenderer : public DistortionRenderer {
     };
 
     // Specify multisample info
-    VkSampleMask sample_mask = ~0u;
-    VkPipelineMultisampleStateCreateInfo multisample_info{
+    VkSampleMask sampleMask = ~0u;
+    VkPipelineMultisampleStateCreateInfo multisampleInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
         .pNext = nullptr,
         .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
         .sampleShadingEnable = VK_FALSE,
         .minSampleShading = 0,
-        .pSampleMask = &sample_mask,
+        .pSampleMask = &sampleMask,
         .alphaToCoverageEnable = VK_FALSE,
         .alphaToOneEnable = VK_FALSE,
     };
 
     // Specify color blend state
-    VkPipelineColorBlendAttachmentState attachment_states{
+    VkPipelineColorBlendAttachmentState attachmentStates{
         .blendEnable = VK_FALSE,
         .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
     };
 
-    VkPipelineColorBlendStateCreateInfo color_blend_info{
+    VkPipelineColorBlendStateCreateInfo colorBlendInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
         .logicOpEnable = VK_FALSE,
         .logicOp = VK_LOGIC_OP_COPY,
         .attachmentCount = 1,
-        .pAttachments = &attachment_states,
+        .pAttachments = &attachmentStates,
     };
 
     // Specify rasterizer info
-    VkPipelineRasterizationStateCreateInfo raster_info{
+    VkPipelineRasterizationStateCreateInfo rasterInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
         .pNext = nullptr,
         .depthClampEnable = VK_FALSE,
@@ -426,10 +424,10 @@ class VulkanDistortionRenderer : public DistortionRenderer {
     };
 
     // Specify input assembler state
-    VkPipelineInputAssemblyStateCreateInfo input_assembly_info{
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
         .pNext = nullptr,
-        .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
+        .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
         .primitiveRestartEnable = VK_FALSE,
     };
 
@@ -454,7 +452,7 @@ class VulkanDistortionRenderer : public DistortionRenderer {
             .offset = sizeof(float) * 2,
         }};
 
-    VkPipelineVertexInputStateCreateInfo vertex_input_info{
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
         .pNext = nullptr,
         .vertexBindingDescriptionCount = 1,
@@ -463,33 +461,33 @@ class VulkanDistortionRenderer : public DistortionRenderer {
         .pVertexAttributeDescriptions = vertex_input_attributes,
     };
 
-    VkDynamicState dynamic_state_enables[2];  // Viewport + Scissor
-    memset(dynamic_state_enables, 0, sizeof dynamic_state_enables);
-    dynamic_state_enables[0] = VK_DYNAMIC_STATE_VIEWPORT;
-    dynamic_state_enables[1] = VK_DYNAMIC_STATE_SCISSOR;
+    VkDynamicState dynamicStateEnables[2];  // Viewport + Scissor
+    memset(dynamicStateEnables, 0, sizeof dynamicStateEnables);
+    dynamicStateEnables[0] = VK_DYNAMIC_STATE_VIEWPORT;
+    dynamicStateEnables[1] = VK_DYNAMIC_STATE_SCISSOR;
 
-    VkPipelineDynamicStateCreateInfo dynamic_state_info{
+    VkPipelineDynamicStateCreateInfo dynamicStateInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
         .pNext = nullptr,
         .dynamicStateCount = 0,
         .pDynamicStates = nullptr};
 
     // Create the pipeline
-    VkGraphicsPipelineCreateInfo pipeline_create_info{
+    VkGraphicsPipelineCreateInfo pipelineCreateInfo{
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
         .stageCount = 2,
-        .pStages = shader_stages,
-        .pVertexInputState = &vertex_input_info,
-        .pInputAssemblyState = &input_assembly_info,
+        .pStages = shaderStages,
+        .pVertexInputState = &vertexInputInfo,
+        .pInputAssemblyState = &inputAssemblyInfo,
         .pTessellationState = nullptr,
-        .pViewportState = &viewport_info,
-        .pRasterizationState = &raster_info,
-        .pMultisampleState = &multisample_info,
+        .pViewportState = &viewportInfo,
+        .pRasterizationState = &rasterInfo,
+        .pMultisampleState = &multisampleInfo,
         .pDepthStencilState = nullptr,
-        .pColorBlendState = &color_blend_info,
-        .pDynamicState = &dynamic_state_info,
+        .pColorBlendState = &colorBlendInfo,
+        .pDynamicState = &dynamicStateInfo,
         .layout = pipeline_layout_,
         .renderPass = render_pass_,
         .subpass = 0,
@@ -498,70 +496,70 @@ class VulkanDistortionRenderer : public DistortionRenderer {
     };
 
     CALL_VK(vkCreateGraphicsPipelines(logical_device_, VK_NULL_HANDLE, 1,
-                                      &pipeline_create_info, nullptr,
+                                      &pipelineCreateInfo, nullptr,
                                       &graphics_pipeline_[eye]));
 
-    vkDestroyShaderModule(logical_device_, vertex_shader, nullptr);
-    vkDestroyShaderModule(logical_device_, fragment_shader, nullptr);
+    vkDestroyShaderModule(logical_device_, vertexShader, nullptr);
+    vkDestroyShaderModule(logical_device_, fragmentShader, nullptr);
   }
 
   void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
                     VkMemoryPropertyFlags properties, VkBuffer& buffer,
-                    VkDeviceMemory& buffer_memory) {
-    VkBufferCreateInfo buffer_info{.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+                    VkDeviceMemory& bufferMemory) {
+    VkBufferCreateInfo bufferInfo{.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
                                   .size = size,
                                   .usage = usage,
                                   .sharingMode = VK_SHARING_MODE_EXCLUSIVE};
 
-    CALL_VK(vkCreateBuffer(logical_device_, &buffer_info, nullptr, &buffer));
+    CALL_VK(vkCreateBuffer(logical_device_, &bufferInfo, nullptr, &buffer));
 
-    VkMemoryRequirements mem_requirements;
-    vkGetBufferMemoryRequirements(logical_device_, buffer, &mem_requirements);
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(logical_device_, buffer, &memRequirements);
 
-    VkMemoryAllocateInfo alloc_info{
+    VkMemoryAllocateInfo allocInfo{
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .allocationSize = mem_requirements.size,
+        .allocationSize = memRequirements.size,
         .memoryTypeIndex =
-            FindMemoryType(mem_requirements.memoryTypeBits, properties)};
+            FindMemoryType(memRequirements.memoryTypeBits, properties)};
 
     CALL_VK(
-        vkAllocateMemory(logical_device_, &alloc_info, nullptr, &buffer_memory));
+        vkAllocateMemory(logical_device_, &allocInfo, nullptr, &bufferMemory));
 
-    vkBindBufferMemory(logical_device_, buffer, buffer_memory, 0);
+    vkBindBufferMemory(logical_device_, buffer, bufferMemory, 0);
   }
 
   void CreateVertexBuffer(CardboardEye eye, std::vector<Vertex> vertices) {
-    VkDeviceSize buffer_size = sizeof(vertices[0]) * vertices.size();
-    CreateBuffer(buffer_size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                  vertex_buffers_[eye], vertex_buffers_memory_[eye]);
 
     void* data;
     CALL_VK(vkMapMemory(logical_device_, vertex_buffers_memory_[eye], 0,
-                        buffer_size, 0, &data));
-    memcpy(data, vertices.data(), buffer_size);
+                        bufferSize, 0, &data));
+    memcpy(data, vertices.data(), bufferSize);
     vkUnmapMemory(logical_device_, vertex_buffers_memory_[eye]);
   }
 
   void CreateIndexBuffer(CardboardEye eye, std::vector<uint16_t> indices) {
-    VkDeviceSize buffer_size = sizeof(indices[0]) * indices.size();
-    CreateBuffer(buffer_size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+    VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                  index_buffers_[eye], index_buffers_memory_[eye]);
 
     void* data;
-    vkMapMemory(logical_device_, index_buffers_memory_[eye], 0, buffer_size, 0,
+    vkMapMemory(logical_device_, index_buffers_memory_[eye], 0, bufferSize, 0,
                 &data);
-    memcpy(data, indices.data(), buffer_size);
+    memcpy(data, indices.data(), bufferSize);
     vkUnmapMemory(logical_device_, index_buffers_memory_[eye]);
   }
 
   void CreateUniformBuffers(CardboardEye eye) {
-    VkDeviceSize buffer_size = sizeof(UniformBufferObject);
+    VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
-    CreateBuffer(buffer_size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+    CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                  uniform_buffers_[eye], uniform_buffers_memory_[eye]);
@@ -611,42 +609,42 @@ class VulkanDistortionRenderer : public DistortionRenderer {
   }
 
   void UpdateDescriptorSets(CardboardEye eye, int index,
-                            VkImageView image_view) const {
-    VkDescriptorBufferInfo buffer_info{.buffer = uniform_buffers_[eye],
+                            VkImageView imageView) const {
+    VkDescriptorBufferInfo bufferInfo{.buffer = uniform_buffers_[eye],
                                       .offset = 0,
                                       .range = sizeof(UniformBufferObject)};
 
-    VkDescriptorImageInfo image_info{
+    VkDescriptorImageInfo imageInfo{
         .sampler = texture_sampler_,
-        .imageView = image_view,
+        .imageView = imageView,
         .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
     };
 
-    VkWriteDescriptorSet descriptor_writes[2];
+    VkWriteDescriptorSet descriptorWrites[2];
 
-    descriptor_writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptor_writes[0].dstSet = descriptor_sets_[eye][index];
-    descriptor_writes[0].dstBinding = 0;
-    descriptor_writes[0].dstArrayElement = 0;
-    descriptor_writes[0].descriptorType =
+    descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[0].dstSet = descriptor_sets_[eye][index];
+    descriptorWrites[0].dstBinding = 0;
+    descriptorWrites[0].dstArrayElement = 0;
+    descriptorWrites[0].descriptorType =
         VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    descriptor_writes[0].descriptorCount = 1;
-    descriptor_writes[0].pImageInfo = &image_info;
+    descriptorWrites[0].descriptorCount = 1;
+    descriptorWrites[0].pImageInfo = &imageInfo;
 
-    descriptor_writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptor_writes[1].dstSet = descriptor_sets_[eye][index];
-    descriptor_writes[1].dstBinding = 1;
-    descriptor_writes[1].dstArrayElement = 0;
-    descriptor_writes[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    descriptor_writes[1].descriptorCount = 1;
-    descriptor_writes[1].pBufferInfo = &buffer_info;
+    descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[1].dstSet = descriptor_sets_[eye][index];
+    descriptorWrites[1].dstBinding = 1;
+    descriptorWrites[1].dstArrayElement = 0;
+    descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptorWrites[1].descriptorCount = 1;
+    descriptorWrites[1].pBufferInfo = &bufferInfo;
 
-    vkUpdateDescriptorSets(logical_device_, 2, descriptor_writes, 0, nullptr);
+    vkUpdateDescriptorSets(logical_device_, 2, descriptorWrites, 0, nullptr);
   }
 
   void RenderDistortionMesh(
       const CardboardEyeTextureDescription* eye_description, CardboardEye eye,
-      uint32_t image_index) const {
+      uint32_t imageIndex) const {
     UniformBufferObject ubo{
         .left_u = eye_description->left_u,
         .right_u = eye_description->right_u,
@@ -655,9 +653,9 @@ class VulkanDistortionRenderer : public DistortionRenderer {
     };
     UpdateUniformBuffer(eye, ubo);
 
-    VkImageView current_image_view =
+    VkImageView currentImageView =
         *reinterpret_cast<VkImageView*>(eye_description->texture);
-    UpdateDescriptorSets(eye, image_index, current_image_view);
+    UpdateDescriptorSets(eye, imageIndex, currentImageView);
   }
 
   // Variables created externally.

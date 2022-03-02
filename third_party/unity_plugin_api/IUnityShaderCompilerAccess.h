@@ -43,7 +43,7 @@ enum UnityShaderCompilerExtCompilerPlatform
     kUnityShaderCompilerExtCompPlatformSwitch,          // Nintendo Switch (NVN)
     kUnityShaderCompilerExtCompPlatformXboxOneD3D12,    // Xbox One D3D12
     kUnityShaderCompilerExtCompPlatformGameCoreXboxOne, // GameCore XboxOne
-    kUnityShaderCompilerExtCompPlatformGameCoreXboxSeries,// GameCore XboxSeries
+    kUnityShaderCompilerExtCompPlatformGameCoreScarlett,// GameCore Scarlett
     kUnityShaderCompilerExtCompPlatformPS5,
     kUnityShaderCompilerExtCompPlatformPS5NGGC,
 
