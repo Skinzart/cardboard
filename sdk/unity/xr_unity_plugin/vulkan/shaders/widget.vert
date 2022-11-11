@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Google LLC
+ * Copyright 2022 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,23 +18,11 @@
 #extension GL_ARB_shading_language_420pack : enable
 precision mediump float;
 
-layout (binding = 1) uniform UniformBufferObject
-{
-    float left_u;
-    float right_u;
-    float top_v;
-    float bottom_v;
-} ubo;
-
 layout (location = 0) in vec2 a_Position;
 layout (location = 1) in vec2 a_TexCoords;
 layout (location = 0) out vec2 v_TexCoords;
-layout (location = 1) out vec2 u_Start;
-layout (location = 2) out vec2 u_End;
 
 void main() {
    gl_Position = vec4(a_Position, 0, 1);
    v_TexCoords = a_TexCoords;
-   u_Start = vec2(ubo.left_u, ubo.bottom_v);
-   u_End = vec2(ubo.right_u, ubo.top_v);
 }

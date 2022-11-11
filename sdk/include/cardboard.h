@@ -89,19 +89,19 @@ typedef struct CardboardEyeTextureDescription {
   /// GLuint variable.
   ///
   /// When using Vulkan, this field corresponds to an uint64_t address pointing
-  /// to a @c VkImageView variable.The SDK client is expected to manage the
+  /// to a @c VkImage variable.The SDK client is expected to manage the
   /// object ownership and to guarantee the pointer validity during the
   /// @c ::CardboardDistortionRenderer_renderEyeToDisplay function execution
   /// to ensure it is properly retained. Usage example:
   ///
   /// @code{.cc}
-  /// VkImageView imageView;
-  /// // Initialize and set up the imageView...
+  /// VkImage image;
+  /// // Initialize and set up the image...
   /// CardboardEyeTextureDescription leftEye;
-  /// leftEye.texture = reinterpret_cast<uint64_t>(&imageView)
+  /// leftEye.texture = reinterpret_cast<uint64_t>(image)
   /// // Fill remaining fields in leftEye...
   /// CardboardDistortionRenderer_renderEyeToDisplay(..., &leftEye, ...);
-  /// // Clear previous imageView if it is needed.
+  /// // Clear previous image if it is needed.
   /// @endcode
   ///
   /// When using Metal, this field corresponds to a @c CFTypeRef
@@ -170,8 +170,11 @@ typedef struct CardboardVulkanDistortionRendererConfig {
   /// value](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDevice.html).
   /// Maintained by the user.
   uint64_t logical_device;
-  /// The number of images in the swapchain.
-  uint32_t swapchain_image_count;
+  /// The swapchain that owns the buffers into which the scene is rendered.
+  /// This field holds a [VkSwapchainKHR
+  /// value](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSwapchainKHR.html).
+  /// Maintained by the user.
+  uint64_t vk_swapchain;
 } CardboardVulkanDistortionRendererConfig;
 
 /// Struct to set Metal distortion renderer target configuration.
@@ -199,7 +202,7 @@ typedef struct CardboardMetalDistortionRendererTargetConfig {
 
 /// Struct to set Vulkan distortion renderer target.
 typedef struct CardboardVulkanDistortionRendererTarget {
-  /// The render pass object that would be used to bind vertex, indices and
+  /// The render pass object that will be used to bind vertex, indices and
   /// descriptor set.
   /// This field holds a [VkRenderPass
   /// value](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkRenderPass.html).
@@ -211,35 +214,10 @@ typedef struct CardboardVulkanDistortionRendererTarget {
   /// Maintained by the user and this command buffer should be started before
   /// calling the rendering function.
   uint64_t vk_command_buffer;
-  /// The frame buffer object.
-  /// This field holds a[VkFrameBuffer
-  /// value](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFrameBuffer.html).
-  /// Maintained by the user.
-  uint64_t vk_frame_buffer;
-  /// The queue that the command buffers will be submitted to.
-  /// This field holds a [VkQueue
-  /// value](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkQueue.html).
-  /// Maintained by the user.
-  uint64_t vk_queue;
-  /// The semaphore that signals which batch/buffer is being waited on before
-  /// the command buffers for this batch begin execution.
-  /// This field holds a [VkSemaphore
-  /// value](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSemaphore.html).
-  /// Maintained by the user.
-  uint64_t vk_semaphore;
-  /// The fence to be signaled once all submitted command buffers have
-  /// completed execution. It is optional, in that, it could be set to
-  /// VK_NULL_HANDLE.
-  /// This field holds a [VkFence
-  /// value](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFence.html).
-  /// Maintained by the user.
-  uint64_t vk_fence;
-  /// The swapchain that owns the buffers into which the scene is rendered.
-  /// This field holds a [VkSwapchainKHR
-  /// value](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSwapchainKHR.html).
-  /// Maintained by the user.
-  uint64_t vk_swapchain;
   /// The index of the image in the swapchain.
+  /// This number should NOT exceed the number of images in swapchain.
+  /// If this number is above the swapchain length, the distortion renderer
+  /// will stop and return directly.
   uint32_t swapchain_image_index;
 } CardboardVulkanDistortionRendererTarget;
 
